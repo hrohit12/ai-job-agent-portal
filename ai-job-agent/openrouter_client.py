@@ -6,23 +6,21 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-# User preferred free model
-MODEL = "deepseek/deepseek-chat-v3.1:free"
-# Alternatives: "google/gemini-2.0-flash-exp:free", "meta-llama/llama-3.3-70b-instruct:free"
+# We are now using Agent Router (agentrouter.org)
+API_KEY = os.getenv("AGENTROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+# Specific model from Agent Router
+MODEL = "deepseek-v3.1"
 
-URL = "https://openrouter.ai/api/v1/chat/completions"
+URL = "https://agentrouter.org/v1/chat/completions"
 
 
 def ask_ai(system_prompt: str, user_prompt: str, json_mode=True, max_retries=4) -> dict | str | None:
-    if not OPENROUTER_API_KEY:
-        raise ValueError("OPENROUTER_API_KEY is not set in environment variables.")
+    if not API_KEY:
+        raise ValueError("AGENTROUTER_API_KEY is not set in environment variables.")
 
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com/hrohit12/ai-job-agent-portal",
-        "X-Title": "AI Job Agent",
     }
     payload = {
         "model": MODEL,
@@ -42,12 +40,12 @@ def ask_ai(system_prompt: str, user_prompt: str, json_mode=True, max_retries=4) 
             if r.status_code == 429:
                 # Rate limited → wait and retry (exponential backoff)
                 wait = 10 * (attempt + 1)
-                print(f"   ⏳ Rate limited (429). Waiting {wait}s (attempt {attempt+1}/{max_retries})...")
+                print(f"   ⏳ AgentRouter Rate limited (429). Waiting {wait}s (attempt {attempt+1}/{max_retries})...")
                 time.sleep(wait)
                 continue
                 
             if r.status_code != 200:
-                print(f"   ⚠️ OpenRouter Error {r.status_code}: {r.text}")
+                print(f"   ⚠️ AgentRouter Error {r.status_code}: {r.text}")
                 r.raise_for_status()
                 
             content = r.json()["choices"][0]["message"]["content"]
