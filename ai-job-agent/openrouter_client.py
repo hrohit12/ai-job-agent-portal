@@ -1,19 +1,20 @@
 import os
 import json
 import requests
+import time
 from dotenv import load_dotenv
 
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-# User preferred free model
-MODEL = "google/gemma-4-26b-a4b-it:free"
-# Alternatives: "meta-llama/llama-3.3-70b-instruct:free", "deepseek/deepseek-chat"
+# Reliable free model
+MODEL = "deepseek/deepseek-chat-v3-0324:free"
+# Alternatives: "google/gemini-2.0-flash-exp:free", "meta-llama/llama-3.3-70b-instruct:free"
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
-def ask_ai(system_prompt: str, user_prompt: str, json_mode=True) -> dict | str:
+def ask_ai(system_prompt: str, user_prompt: str, json_mode=True, max_retries=4) -> dict | str | None:
     if not OPENROUTER_API_KEY:
         raise ValueError("OPENROUTER_API_KEY is not set in environment variables.")
 
@@ -34,13 +35,31 @@ def ask_ai(system_prompt: str, user_prompt: str, json_mode=True) -> dict | str:
     if json_mode:
         payload["response_format"] = {"type": "json_object"}
 
-    r = requests.post(URL, headers=headers, json=payload, timeout=60)
-    if r.status_code != 200:
-        print(f"OpenRouter Error {r.status_code}: {r.text}")
-        r.raise_for_status()
-        
-    content = r.json()["choices"][0]["message"]["content"]
-    return json.loads(content) if json_mode else content
+    for attempt in range(max_retries):
+        try:
+            r = requests.post(URL, headers=headers, json=payload, timeout=60)
+            
+            if r.status_code == 429:
+                # Rate limited → wait and retry (exponential backoff)
+                wait = 10 * (attempt + 1)
+                print(f"   ⏳ Rate limited (429). Waiting {wait}s (attempt {attempt+1}/{max_retries})...")
+                time.sleep(wait)
+                continue
+                
+            if r.status_code != 200:
+                print(f"   ⚠️ OpenRouter Error {r.status_code}: {r.text}")
+                r.raise_for_status()
+                
+            content = r.json()["choices"][0]["message"]["content"]
+            return json.loads(content) if json_mode else content
+            
+        except Exception as e:
+            if attempt == max_retries - 1:
+                print(f"   ❌ AI call failed after {max_retries} attempts: {e}")
+                return None
+            time.sleep(5)
+            
+    return None
 
 
 def analyze_job(raw_job: dict, target_niche: str) -> dict | None:
@@ -65,8 +84,4 @@ def analyze_job(raw_job: dict, target_niche: str) -> dict | None:
         f"Target niche: {target_niche}\n\n"
         f"Raw job data:\n{json.dumps(raw_job, default=str)[:3000]}"
     )
-    try:
-        return ask_ai(system, user, json_mode=True)
-    except Exception as e:
-        print(f"AI error: {e}")
-        return None
+    return ask_ai(system, user, json_mode=True)

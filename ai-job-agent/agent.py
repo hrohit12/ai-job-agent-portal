@@ -9,6 +9,7 @@ TARGET_NICHE = "Remote software engineering internships and entry-level tech job
 SEARCH_TERMS = ["software engineer intern", "python developer", "data analyst intern"]
 LOCATION = "India"
 RESULTS_PER_TERM = 15
+MAX_JOBS_TO_ANALYZE = 40   # Hard cap per run to avoid hitting daily limits
 # =========================================================
 
 
@@ -54,6 +55,11 @@ def run_agent():
         time.sleep(2)
 
     print(f"📥 Scraped {len(all_raw)} raw jobs total.")
+    
+    # Apply safety cap
+    if len(all_raw) > MAX_JOBS_TO_ANALYZE:
+        print(f"⚠️ Capping analysis to first {MAX_JOBS_TO_ANALYZE} jobs.")
+        all_raw = all_raw[:MAX_JOBS_TO_ANALYZE]
 
     # 3) THINK + PUSH loop
     pushed = 0
@@ -66,11 +72,14 @@ def run_agent():
             skipped_dup += 1
             continue
         
-        seen.add(key) # Add to seen even if irrelevant to avoid re-analyzing in same run
+        seen.add(key) # Add to seen even if irrelevant to avoid re-analyzing
 
         # Ask AI: relevant? + normalize
         print(f"🧠 Checking: {raw.get('title')} at {raw.get('company')}...")
         ai = analyze_job(raw, TARGET_NICHE)
+        
+        # Throttling: Stay under 20 req/min for free tier
+        time.sleep(3.5)
         
         if not ai or not ai.get("relevant"):
             skipped_irrelevant += 1
@@ -88,7 +97,7 @@ def run_agent():
         else:
             print(f"  ❌ FAILED to push: {job['title']}")
 
-        time.sleep(1)  # be kind to APIs
+        time.sleep(1)  # be kind to Apps Script
 
     print("\n--- Execution Summary ---")
     print(f"✅ Pushed: {pushed}")
