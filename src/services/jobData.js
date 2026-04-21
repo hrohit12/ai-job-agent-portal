@@ -1,0 +1,50 @@
+export const dummyJobs = [
+  {
+    id: 1,
+    title: "Field Marketing",
+    company: "Sabka Wellnesson Private Limited",
+    location: "Hyderabad",
+    startDate: "Immediately",
+    duration: "3 Months",
+    salary: "₹ 12,000 - 30,000 /month",
+    applyBy: "2 May' 26",
+    postedAt: "2 weeks ago",
+    applicantsCount: 72,
+    incentive: "Job offer upto ₹ 6LPA post internship",
+    applyLink: "https://internshala.com/internship/detail/field-marketing-internship-in-hyderabad-at-sabka-wellnesson1713333333",
+    skills: ["Marketing", "Communication", "Sales", "Lead Generation"],
+    description: "We are looking for enthusiastic Field Marketing interns to join our team. You will be responsible for representing our brand in the field, engaging with potential customers, and generating leads. This role requires excellent communication skills and a go-getter attitude. You will gain hands-on experience in market research and sales strategies."
+  },
+  {
+    id: 2,
+    title: "UX Design Intern",
+    company: "Creative Pulse Tech",
+    location: "Remote",
+    startDate: "Immediately",
+    duration: "6 Months",
+    salary: "₹ 15,000 - 25,000 /month",
+    applyBy: "5 May' 26",
+    postedAt: "1 day ago",
+    applicantsCount: 154,
+    incentive: "Certificate & Letter of Recommendation",
+    applyLink: "#",
+    skills: ["Figma", "User Research", "Wireframing", "Prototyping"],
+    description: "Join our creative team to help design the next generation of digital products. You will work closely with senior designers to create user flows, wireframes, and high-fidelity prototypes. Experience with Figma is required. A strong portfolio demonstrating your design process is a plus."
+  },
+  {
+    id: 3,
+    title: "Full Stack Developer",
+    company: "Digital Stream Solutions",
+    location: "Bangalore",
+    startDate: "Immediately",
+    duration: "4 Months",
+    salary: "₹ 20,000 - 35,000 /month",
+    applyBy: "10 May' 26",
+    postedAt: "3 days ago",
+    applicantsCount: 45,
+    incentive: "Flexible work hours",
+    applyLink: "#",
+    skills: ["React", "Node.js", "MongoDB", "Express"],
+    description: "We are looking for a Full Stack Developer intern who is comfortable working with the MERN stack. You will be helping us build and maintain various features of our core product. You should have a good understanding of both frontend and backend development and be eager to learn new technologies."
+  }
+];

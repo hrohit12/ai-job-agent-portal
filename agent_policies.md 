@@ -1,0 +1,27 @@
+# Agent Policies – AnaCredit System
+
+## 1. Referential Integrity Agent
+- Validates relationships between datasets
+- Uses rules: RI0030, RI0040, RI0050, RI0060
+- Ensures data linkage between tables
+
+## 2. Completeness Agent
+- Checks missing mandatory fields
+- Uses rules: CM001, CM002, CM003
+
+## 3. Consistency Agent
+- Validates logical correctness
+- Uses rules: CN001, CN002
+
+## 4. Plausibility Agent
+- Detects anomalies and suspicious data
+- Uses rules: PL001, PL002, PL003
+
+## 5. RAG Autofix Agent
+- Uses rules + historical fixes
+- Suggests corrections
+
+## 6. Policy Engine
+- Reads rules from Excel/JSON
+- Converts rules into executable checks
+ ⁠

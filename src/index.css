@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@theme {
+  --font-sans: "Satoshi", sans-serif;
+  --font-heading: "Satoshi", sans-serif;
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.04)];
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    @apply antialiased text-slate-900;
+  }
+  
+  body {
+    @apply bg-white overflow-x-hidden;
+  }
+
+  h1 { @apply text-[clamp(2rem,8vw,3.5rem)] leading-tight; }
+  h2 { @apply text-[clamp(1.5rem,6vw,2.5rem)] leading-tight; }
+  h3 { @apply text-[clamp(1.25rem,4vw,1.75rem)] leading-snug; }
+  p { @apply text-[clamp(0.875rem,2vw,1.125rem)] leading-relaxed; }
+}
+
+@layer components {
+  .filter-chip {
+    @apply px-4 py-1.5 rounded-sm border border-slate-200 text-slate-600 text-[10px] font-bold uppercase tracking-wider transition-all hover:border-primary hover:text-primary whitespace-nowrap;
+  }
+  
+  .filter-chip.active {
+    @apply bg-primary text-secondary border-primary shadow-[2px_2px_0px_0px_rgba(255,210,0,1)];
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

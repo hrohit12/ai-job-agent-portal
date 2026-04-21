@@ -1,0 +1,32 @@
+name: Daily Job Agent
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # every day at 03:00 UTC (~08:30 IST)
+  workflow_dispatch:       # manual trigger button
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ai-job-agent/requirements.txt
+          
+      - name: Run agent
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          APPS_SCRIPT_URL:    ${{ secrets.APPS_SCRIPT_URL }}
+          ADMIN_EMAIL:        ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD:     ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          cd ai-job-agent
+          python agent.py
