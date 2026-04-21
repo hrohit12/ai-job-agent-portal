@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # We are now using Agent Router (agentrouter.org)
-API_KEY = os.getenv("AGENTROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+API_KEY = os.getenv("AGENTROUTER_API_KEY")
 # Agent Router preferred model
 MODEL = "deepseek-v3.2"
 
