@@ -10,8 +10,8 @@ load_dotenv()
 API_KEY = os.getenv("AGENTROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
 # Agent Router preferred model
 MODEL = "deepseek-v3.2"
-# Alternate: "deepseek-r1-0528"
 
+# IMPORTANT: For raw requests, we need the FULL endpoint, not just the base URL
 URL = "https://agentrouter.org/v1/chat/completions"
 
 
@@ -31,6 +31,8 @@ def ask_ai(system_prompt: str, user_prompt: str, json_mode=True, max_retries=4) 
         ],
         "temperature": 0.2,
     }
+    
+    # Enable JSON mode if requested
     if json_mode:
         payload["response_format"] = {"type": "json_object"}
 
@@ -40,17 +42,30 @@ def ask_ai(system_prompt: str, user_prompt: str, json_mode=True, max_retries=4) 
             
             if r.status_code == 429:
                 # Rate limited → wait and retry (exponential backoff)
-                wait = 10 * (attempt + 1)
+                wait = 15 * (attempt + 1)
                 print(f"   ⏳ AgentRouter Rate limited (429). Waiting {wait}s (attempt {attempt+1}/{max_retries})...")
                 time.sleep(wait)
                 continue
                 
             if r.status_code != 200:
                 print(f"   ⚠️ AgentRouter Error {r.status_code}: {r.text}")
+                # Some models don't support JSON mode, try without it if it's a 4xx error related to format
+                if json_mode and r.status_code == 400 and "response_format" in r.text:
+                    print("   ℹ️ Model doesn't support JSON mode, retrying without it...")
+                    return ask_ai(system_prompt, user_prompt, json_mode=False, max_retries=1)
                 r.raise_for_status()
                 
-            content = r.json()["choices"][0]["message"]["content"]
-            return json.loads(content) if json_mode else content
+            data = r.json()
+            content = data["choices"][0]["message"]["content"]
+            
+            if json_mode:
+                try:
+                    return json.loads(content)
+                except json.JSONDecodeError:
+                    # If JSON mode failed to return actual JSON, return raw for backup
+                    print("   ⚠️ AI returned non-JSON content in JSON mode.")
+                    return content
+            return content
             
         except Exception as e:
             if attempt == max_retries - 1:
