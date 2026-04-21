@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-# Reliable free model
-MODEL = "deepseek/deepseek-chat-v3-0324:free"
+# User preferred free model
+MODEL = "deepseek/deepseek-chat-v3.1:free"
 # Alternatives: "google/gemini-2.0-flash-exp:free", "meta-llama/llama-3.3-70b-instruct:free"
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
