@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-# Stable free model
-MODEL = "google/gemini-2.0-flash-exp:free"
+# User preferred free model
+MODEL = "google/gemma-4-26b-a4b-it:free"
 # Alternatives: "meta-llama/llama-3.3-70b-instruct:free", "deepseek/deepseek-chat"
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
