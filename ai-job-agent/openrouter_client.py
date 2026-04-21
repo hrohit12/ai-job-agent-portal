@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-# Free, strong, tool-capable model
-MODEL = "deepseek/deepseek-chat-v3-0324:free"
-# Alternatives: "meta-llama/llama-3.3-70b-instruct:free", "openai/gpt-oss-120b:free"
+# Stable free model
+MODEL = "google/gemini-2.0-flash-exp:free"
+# Alternatives: "meta-llama/llama-3.3-70b-instruct:free", "deepseek/deepseek-chat"
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -20,7 +20,7 @@ def ask_ai(system_prompt: str, user_prompt: str, json_mode=True) -> dict | str:
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com/speedyapply/JobSpy",   # Identifying source
+        "HTTP-Referer": "https://github.com/hrohit12/ai-job-agent-portal",
         "X-Title": "AI Job Agent",
     }
     payload = {
@@ -35,7 +35,10 @@ def ask_ai(system_prompt: str, user_prompt: str, json_mode=True) -> dict | str:
         payload["response_format"] = {"type": "json_object"}
 
     r = requests.post(URL, headers=headers, json=payload, timeout=60)
-    r.raise_for_status()
+    if r.status_code != 200:
+        print(f"OpenRouter Error {r.status_code}: {r.text}")
+        r.raise_for_status()
+        
     content = r.json()["choices"][0]["message"]["content"]
     return json.loads(content) if json_mode else content
 
