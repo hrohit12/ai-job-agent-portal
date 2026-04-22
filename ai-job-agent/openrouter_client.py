@@ -6,26 +6,29 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# We are now using Agent Router (agentrouter.org)
-API_KEY = os.getenv("AGENTROUTER_API_KEY")
+# Using OpenRouter (openrouter.ai) — reliable, no WAF blocking on CI runners
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-# Exact names from your AgentRouter dashboard
+# Free-tier models available on OpenRouter (in priority order)
 MODELS = [
-    "deepseek-v3.2",
-    "deepseek-v3.1",
-    "deepseek-r1-0528",
+    "deepseek/deepseek-chat-v3-5:free",
+    "deepseek/deepseek-r1:free",
+    "meta-llama/llama-3.3-8b-instruct:free",
+    "google/gemma-3-12b-it:free",
 ]
 
-URL = "https://agentrouter.org/v1/chat/completions"
+URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
 def ask_ai(system_prompt: str, user_prompt: str, json_mode=True, max_retries=3) -> dict | str | None:
     if not API_KEY:
-        raise ValueError("AGENTROUTER_API_KEY is not set in environment variables.")
+        raise ValueError("OPENROUTER_API_KEY is not set in environment variables.")
 
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/hrohit12/ai-job-agent-portal",
+        "X-Title": "AI Job Agent Portal",
     }
     
     # Try each model in the priority list
@@ -83,7 +86,7 @@ def ask_ai(system_prompt: str, user_prompt: str, json_mode=True, max_retries=3) 
                 else:
                     break 
                     
-    print("   🚫 All models failed on AgentRouter.")
+    print("   🚫 All models failed on OpenRouter.")
     return None
 
 
