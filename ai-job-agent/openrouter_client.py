@@ -9,12 +9,13 @@ load_dotenv()
 # Using OpenRouter (openrouter.ai) — reliable, no WAF blocking on CI runners
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-# Free-tier models available on OpenRouter (in priority order)
+# Free-tier models available on OpenRouter (Stable IDs)
 MODELS = [
-    "deepseek/deepseek-chat-v3-5:free",
+    "deepseek/deepseek-chat",
     "deepseek/deepseek-r1:free",
-    "meta-llama/llama-3.3-8b-instruct:free",
-    "google/gemma-3-12b-it:free",
+    "meta-llama/llama-3.1-8b-instruct:free",
+    "google/gemini-flash-1.5:free",
+    "qwen/qwen-2-7b-instruct:free",
 ]
 
 URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -35,13 +36,17 @@ def ask_ai(system_prompt: str, user_prompt: str, json_mode=True, max_retries=3) 
     for model_name in MODELS:
         print(f"   🤖 Trying model: {model_name}...")
         
+        # Determine if we should use a system message or merge it
+        # Some models (like Gemini/Gemma) prefer everything in the user prompt or have specific roles
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+
         payload = {
             "model": model_name,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            "temperature": 0.2,
+            "messages": messages,
+            "temperature": 0.1, # Lower for more consistent JSON
         }
         
         if json_mode:
@@ -68,6 +73,27 @@ def ask_ai(system_prompt: str, user_prompt: str, json_mode=True, max_retries=3) 
                         print(f"      📄 Raw Response Snippet: {r.text[:500]}")
                         break # Try next model
                 
+                elif r.status_code == 400 and "system" in r.text.lower():
+                    # Fallback for models that don't support system prompts
+                    print(f"      🔄 Model {model_name} doesn't support system prompts. Retrying with merged content...")
+                    merged_payload = {
+                        "model": model_name,
+                        "messages": [{"role": "user", "content": f"{system_prompt}\n\n{user_prompt}"}],
+                        "temperature": 0.1,
+                    }
+                    if json_mode:
+                        merged_payload["response_format"] = {"type": "json_object"}
+                    
+                    r2 = requests.post(URL, headers=headers, json=merged_payload, timeout=60)
+                    if r2.status_code == 200:
+                        try:
+                            content = r2.json()["choices"][0]["message"]["content"]
+                            return json.loads(content) if json_mode else content
+                        except:
+                            pass
+                    print(f"      ⚠️ Merged fallback also failed for {model_name}")
+                    break
+
                 elif r.status_code == 429:
                     wait = 15 * (attempt + 1)
                     print(f"      ⏳ Rate limited (429). Waiting {wait}s...")
